@@ -262,7 +262,7 @@ These have no local hook surface to attach to — the product runs server-side, 
 | `import <path>` | — | — | ✅ | Just the import half of `sync`. Same skip-if-seen behavior as `setup` (session-presence only, not mtime-aware — a finished export doesn't grow). |
 | `summary` | ✅ | ✅ | ✅ | Print raw tallies — counts and sums only, no scores, no ratios, no cost estimate. |
 | `export` | ✅ | ✅ | ✅ | Write `~/.valuezen/<source>/propensity-evidence-<date>.json` for upload to Valuezen. |
-| `classify [N]` | ✅ | ✅ | ✅ (`classify <path> [N]`) | **Opt-in, advanced tier.** Domain/topics/outcome label via your local `claude` CLI. Consent notice on first run. |
+| `classify [N]` | ✅ | ✅ | ✅ (`classify <path> [N]`) | **Opt-in, advanced tier — run `setup`/`import`/`sync` first.** Labels sessions that already exist in the store; it does not collect them itself. Domain/topics/outcome label via your local `claude` CLI. Consent notice on first run. |
 | `status` | ✅ | ✅ (no hooks to report — just store stats) | — | Hook wiring (Claude Code) / event store stats. |
 | `prune [days]` / `retention [days]` | ✅ | ✅ | ✅ / — | Apply/configure local retention. |
 
@@ -280,6 +280,22 @@ To combine specific sources into one export instead (e.g. Claude Code + Codex to
 python3 collect.py export --only claude_web,chatgpt
 ```
 This lands under a combined-label directory instead (`~/.valuezen/claude_web+chatgpt/`), so it never collides with a plain single-source export.
+
+---
+
+## 🏷️ Classify (opt-in, advanced tier)
+
+> ⚠️ **Run `setup` / `import` / `sync` first.** `classify` only labels sessions that are *already* in your local evidence store — it does not collect usage data (turns, tokens, message counts) itself. Run it on an empty store and you'll get a report with a domain/topic label but zero of the counts everything else is built from. If you've already run `sync` regularly, you're covered — this only matters if `classify` is the first command you've ever run.
+>
+> Also note: on the Valuezen report, this data currently only shows up for **claude-web / chatgpt** sources (it fills in the "Domain & Outcome Signal" card, since those sources have no execution data of their own). For **Claude Code / Codex**, the label is still captured and exported, but the report doesn't display it — those sources already have richer signal (tool calls, file diffs, test runs) that the report draws on instead, so there's no example for them here.
+
+**claude-web / chatgpt** — point it at your downloaded data export:
+```bash
+python3 collect.py classify <path-to-export>       # classify up to 20
+python3 collect.py classify <path-to-export> 5      # classify only 5
+```
+
+First run shows a consent notice and asks `[y/N]` before sending anything — say yes once and it's remembered. Each session's own prompts (never the assistant's replies) are sent to your local `claude` CLI, which returns a `domain` / `topics` / `task_type` / `outcome` label — never a score. Already-classified sessions are skipped automatically, so re-running is cheap. Requires the `claude` CLI on `PATH`.
 
 ---
 
