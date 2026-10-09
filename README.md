@@ -4,13 +4,14 @@
 
 **Where are you on the journey from AI-curious to AI-native?**
 
-*Free · Open-source · Privacy-first · No sign-up to preview*
+*Free · Source-available · Privacy-first · No sign-up to preview*
 
 [![Python 3](https://img.shields.io/badge/python-3.x-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)](#-requirements)
 [![Privacy](https://img.shields.io/badge/privacy-metadata%20only-blueviolet)](#-dont-take-our-word-for-it--see-exactly-what-gets-sent)
 [![Runs locally](https://img.shields.io/badge/runs-100%25%20local-success)](#-why-this-exists)
 [![Platforms](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-lightgrey)](#-requirements)
+[![License: FSL-1.1-ALv2](https://img.shields.io/badge/license-FSL--1.1--ALv2-blue)](LICENSE.md)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-ff69b4)](https://github.com/ValueZen-ai/ai-propensity/pulls)
 
 [🚀 Quickstart](#-quickstart) ·
@@ -18,6 +19,7 @@
 [🔌 Install](#-install--claude-code-adapter) ·
 [⌨️ Usage](#%EF%B8%8F-usage) ·
 [📚 Reference](#-reference) ·
+[⚖️ License](#%EF%B8%8F-license--trademarks) ·
 [🌐 Upload](https://app.valuezen.ai/ai-native)
 
 </div>
@@ -45,6 +47,7 @@ This tool extracts AI propensity signals — metadata about how you use AI, neve
 - [Usage](#%EF%B8%8F-usage)
 - [Export to Valuezen](#-export-to-valuezen)
 - [Reference](#-reference)
+- [License & trademarks](#%EF%B8%8F-license--trademarks)
 
 ## 🧠 What is "AI propensity"?
 
@@ -332,7 +335,22 @@ install.sh / uninstall.sh      — creates the store / removes it (and any retir
 .claude-plugin/plugin.json     — plugin manifest
 skills/run/SKILL.md            — registers /ai-collect:run in Claude Code
 README.md                      — this file
+LICENSE.md                     — FSL-1.1-ALv2 license terms
 ```
+
+## ⚖️ License & trademarks
+
+**License.** This project is *source-available* under the [Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2)](LICENSE.md). In plain terms (the [license text](LICENSE.md) is what governs):
+
+- ✅ **You can** read, run, modify and redistribute it — for yourself, inside your company, for education or research, or while providing services to someone who uses it.
+- 🚫 **You can't** use it in a commercial product or service that competes with it or with Valuezen's AI Propensity offering — for example, repackaging the collector to feed another AI-readiness, AI-propensity or AI-fluency score.
+- ⏳ **Each release becomes Apache-2.0** on its second anniversary, with no competing-use restriction.
+
+**Trademarks.** "Valuezen", "AI Propensity Index" and the Valuezen logo are trademarks of Valuezen. The license grants no rights to them. If you fork or redistribute this project you must give it a different name and branding, and you must not suggest it is made, endorsed or operated by Valuezen — in particular, you must not collect or upload anyone's data under the Valuezen name.
+
+**Official sources.** The only official source for this tool is [github.com/ValueZen-ai/ai-propensity](https://github.com/ValueZen-ai/ai-propensity), and the only official upload destination is [app.valuezen.ai/ai-native](https://app.valuezen.ai/ai-native). If a copy asks you to send your evidence file anywhere else, it isn't from us — please [report it](https://github.com/ValueZen-ai/ai-propensity/issues).
+
+**Contributing.** Pull requests are welcome. By submitting one you agree that your contribution is licensed under the same terms as this project.
 
 ---
 

@@ -1,10 +1,12 @@
 {
   "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
   "name": "ai-collect",
-  "description": "AI Propensity Signal Collector — captures AI usage metadata (tokens, tools, skills, agents) into a local timestamped evidence store. Privacy-first: never stores prompts, responses, or source code.",
+  "description": "AI Propensity Signal Collector \u2014 captures AI usage metadata (tokens, tools, skills, agents) into a local timestamped evidence store. Privacy-first: never stores prompts, responses, or source code.",
   "version": "2.1.0",
   "author": {
     "name": "Valuezen",
     "url": "https://valuezen.ai"
-  }
+  },
+  "license": "FSL-1.1-ALv2",
+  "repository": "https://github.com/ValueZen-ai/ai-propensity"
 }
