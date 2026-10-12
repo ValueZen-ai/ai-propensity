@@ -1,6 +1,6 @@
 # Converter
 
-`ai-propensity-converter.html` is a single web page that turns a ChatGPT or Claude.ai data export into the same evidence file `adapters/chatgpt` and `adapters/claude-web` produce, without Python. People download it and open it from disk, or use the GitHub Pages copy. See the main [README](../README.md#-use-chatgpt-or-claudeai-no-install-no-python).
+`ai-propensity-converter.html` is a single web page that turns a ChatGPT or Claude.ai data export into the same evidence file `adapters/chatgpt` and `adapters/claude-web` produce, without Python. People download it (the **Download raw file** button on its GitHub page) and open it from disk. See the main [README](../README.md#-use-chatgpt-or-claudeai-no-install-no-python).
 
 ## Layout
 
@@ -24,6 +24,5 @@ The page must keep working when opened from disk (`file://`). That means one fil
 
 ## Verifying a downloaded copy
 
-- `shasum -a 256 ai-propensity-converter.html` should match the `.sha256` file attached to the same release.
-- Or rebuild it yourself from the release's tag (`node converter/build.mjs`) and diff the two files.
+- Rebuild it yourself from the source (`node converter/build.mjs`) and diff it against your copy.
 - Open it with the network off, or watch your browser's Network tab. The CSP in the page's first lines (`default-src 'none'; connect-src 'none'`) blocks every request.

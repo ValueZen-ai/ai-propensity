@@ -29,7 +29,7 @@
 
 This tool extracts AI propensity signals — metadata about how you use AI, never the content of what you asked or built — from **Claude Code**, **Codex**, **Claude.ai**, and **ChatGPT**, and turns them into your **AI Propensity Index** on Valuezen. Takes under a minute. Runs entirely on your own device.
 
-> **Use ChatGPT or Claude.ai?** You don't need Python or a terminal. [Download the converter](https://github.com/ValueZen-ai/ai-propensity/releases/latest/download/ai-propensity-converter.html), open it in your browser, and drop your data export on it. [How it works ↓](#-use-chatgpt-or-claudeai-no-install-no-python)
+> **Use ChatGPT or Claude.ai?** You don't need Python or a terminal. [Download the converter](https://github.com/ValueZen-ai/ai-propensity/blob/main/converter/ai-propensity-converter.html), open it in your browser, and drop your data export on it. [How it works ↓](#-use-chatgpt-or-claudeai-no-install-no-python)
 
 ```text
  💻 Local AI history  ──▶  🧹 Metadata only  ──▶  📄 One JSON file  ──▶  🌐 Upload (you choose)  ──▶  📈 Your Index
@@ -98,7 +98,7 @@ Four adapters, one schema. For Claude.ai and ChatGPT, the browser converter and 
 
 ChatGPT and Claude.ai keep your history on their servers, so the way in is the data export each one lets you download. The **converter** is a single web page that turns that export into the upload file, on your own computer:
 
-1. **[Download `ai-propensity-converter.html`](https://github.com/ValueZen-ai/ai-propensity/releases/latest/download/ai-propensity-converter.html)** and double-click it. It opens in your browser like any web page. (Or use the same page online: [valuezen-ai.github.io/ai-propensity](https://valuezen-ai.github.io/ai-propensity/).)
+1. **Download the converter.** Open [`ai-propensity-converter.html`](https://github.com/ValueZen-ai/ai-propensity/blob/main/converter/ai-propensity-converter.html) and click the **Download raw file** button (↓) at the top right. Then double-click the downloaded file, and it opens in your browser like any web page.
 2. **Get your export.** In ChatGPT: Settings → Data controls → Export data. In Claude: Settings → Privacy → Export data. Each emails you a `.zip`.
 3. **Drop the `.zip` (or the folder it unzipped into) onto the page.** It shows exactly what the evidence file contains. You can search it for anything you wrote to confirm it isn't there.
 4. **Download the evidence file.** It goes to your Downloads folder, and the page tells you its name. Upload it at **[app.valuezen.ai/ai-native](https://app.valuezen.ai/ai-native)**.
@@ -110,7 +110,6 @@ Use both? Add both exports and you get one file covering both.
 - 🔌 **It can't send anything.** The page's [Content-Security-Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) (`connect-src 'none'`, the first lines of *View page source*) makes your browser block every network request from it. It works with Wi-Fi off, so try it that way.
 - 🧾 **Everything is in that one file.** There are no add-ons, no tracking and no outside code, and you can read it all with *View page source*.
 - 👀 **You see the result before you keep it.** The page shows what's in the evidence file, and you can search it for anything you wrote.
-- 🔐 **You can check your copy is genuine.** Each release lists the file's checksum (`ai-propensity-converter.html.sha256`).
 
 The command-line route below still works the same for ChatGPT and Claude.ai, and it's the only route for Claude Code and Codex.
 
