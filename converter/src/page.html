@@ -1,0 +1,136 @@
+<!doctype html>
+<!--
+  AI Propensity converter — turns a ChatGPT or Claude data export into an
+  AI Propensity evidence file, entirely inside this page.
+
+  Check it yourself:
+   * The Content-Security-Policy below has connect-src 'none' and
+     default-src 'none': your browser blocks this page from making any
+     network request at all, and only the one script and one stylesheet
+     whose hashes are listed can run.
+   * Source, tests and build script: https://github.com/ValueZen-ai/ai-propensity/tree/main/converter
+     This file is generated from converter/src by converter/build.mjs;
+     CI fails if it differs from a fresh build.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="__CSP__">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>AI Propensity Converter</title>
+<style>__STYLE__</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">AI Propensity · by Valuezen</div>
+    <h1>Turn your ChatGPT or Claude export into an evidence file</h1>
+    <p class="lede">This page works entirely on your computer. It reads your chat export, keeps only counts, and gives you a small file you can check before you choose to upload it.</p>
+  </header>
+
+  <ul class="promise">
+    <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>
+      <span><b>Nothing to install, no account.</b> It all happens inside this browser tab.</span></li>
+    <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>
+      <span><b>This page can't connect to the internet.</b> It's locked by a security setting your browser enforces. To be sure, turn off Wi-Fi before you start.</span></li>
+    <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>
+      <span><b>Your messages stay out of it.</b> No message text, no titles and no file names go into the file. You can search it yourself before saving.</span></li>
+  </ul>
+
+  <section class="card" aria-labelledby="s1">
+    <h2 id="s1"><span class="step">1</span> Download your data export</h2>
+    <div class="tabs" role="tablist" aria-label="Which product">
+      <button class="tab" role="tab" id="tab-chatgpt" aria-controls="howto-chatgpt" aria-selected="true">ChatGPT</button>
+      <button class="tab" role="tab" id="tab-claude" aria-controls="howto-claude" aria-selected="false" tabindex="-1">Claude</button>
+    </div>
+    <div role="tabpanel" id="howto-chatgpt" aria-labelledby="tab-chatgpt">
+      <ol class="howto">
+        <li>Open <b>chatgpt.com</b>, click your profile picture, then <b>Settings</b>.</li>
+        <li>Go to <b>Data controls</b> → <b>Export data</b> → <b>Export</b>.</li>
+        <li>ChatGPT emails you a download link. It can take a few minutes to a few hours, and the link expires after 24 hours. Download the <code>.zip</code>.</li>
+      </ol>
+    </div>
+    <div role="tabpanel" id="howto-claude" aria-labelledby="tab-claude" hidden>
+      <ol class="howto">
+        <li>Open <b>claude.ai</b>, click your name (bottom left), then <b>Settings</b>.</li>
+        <li>Go to <b>Privacy</b> → <b>Export data</b>.</li>
+        <li>Claude emails you a download link. Download the <code>.zip</code>.</li>
+      </ol>
+    </div>
+    <p class="hint">Use both? Export from each one and add both in step 2. You'll get one file that covers both.</p>
+  </section>
+
+  <section class="card" aria-labelledby="s2">
+    <h2 id="s2"><span class="step">2</span> Add your export</h2>
+    <div class="drop" id="drop">
+      <strong>Drop the export <code>.zip</code> here</strong>
+      <span class="hint">or the folder it unzipped into</span>
+      <div class="buttons">
+        <button class="btn primary" id="pick-file" type="button">Choose .zip file</button>
+        <button class="btn" id="pick-folder" type="button">Choose unzipped folder</button>
+      </div>
+      <input class="sr-only" id="file-input" type="file" accept=".zip,.json,application/zip,application/json" multiple tabindex="-1" aria-hidden="true">
+      <input class="sr-only" id="folder-input" type="file" webkitdirectory multiple tabindex="-1" aria-hidden="true">
+    </div>
+    <p class="hint">On a Mac, Safari often unzips downloads by itself. If you see a folder instead of a <code>.zip</code>, choose the folder.</p>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <div class="error" id="error" role="alert" hidden></div>
+  </section>
+
+  <section class="card" id="review" aria-labelledby="s3" hidden>
+    <h2 id="s3"><span class="step">3</span> Check what's in the file</h2>
+    <div class="exports" id="exports"></div>
+    <div class="stats" id="stats"></div>
+    <div class="split">
+      <div>
+        <h3>What the file contains</h3>
+        <ul class="yes" id="included"></ul>
+      </div>
+      <div>
+        <h3>What it never contains</h3>
+        <ul class="no">
+          <li>Your messages or the AI's replies</li>
+          <li>Conversation titles</li>
+          <li>Names of files or images you shared</li>
+          <li>Your name, email or account details</li>
+        </ul>
+      </div>
+    </div>
+    <label for="search"><b>Check for yourself.</b> Type something you wrote in a chat, and we'll search the file for it.</label>
+    <div class="search">
+      <input id="search" type="search" autocomplete="off" spellcheck="false" placeholder="e.g. a phrase from one of your chats">
+    </div>
+    <div class="search-result" id="search-result" aria-live="polite"></div>
+    <details id="raw">
+      <summary>See the file itself</summary>
+      <p class="hint" id="fields"></p>
+      <pre class="json" id="json"></pre>
+      <button class="linkbtn" id="show-all" type="button" hidden>Show the whole file</button>
+    </details>
+  </section>
+
+  <section class="card download" id="save" aria-labelledby="s4" hidden>
+    <h2 id="s4"><span class="step">4</span> Save it, then upload it</h2>
+    <button class="btn primary big" id="download" type="button">Download evidence file</button>
+    <div class="saved" id="saved" role="status" aria-live="polite" hidden>
+      <p><b>✓ Saved to your Downloads folder</b> as <code id="saved-name"></code></p>
+      <p class="hint">Can't see it? Click the download icon near your browser's address bar and choose <b>Show in folder</b> (or <b>Show in Finder</b>). If your browser asks where to save files, it's in the folder you picked.</p>
+    </div>
+    <p class="hint" id="filename"></p>
+    <p>Next, go to <a href="https://app.valuezen.ai/ai-native" target="_blank" rel="noopener noreferrer"><b>app.valuezen.ai/ai-native</b></a> and upload the file from your Downloads folder. You'll see your AI Propensity Index right away, and you don't need an account to preview it.</p>
+  </section>
+
+  <footer>
+    <h2>Check this page for yourself</h2>
+    <ul>
+      <li>Right-click → <b>View page source</b>. Near the top, the security policy says <code>connect-src 'none'</code>, which tells your browser to block every network request from this page.</li>
+      <li>Open your browser's developer tools and watch the <b>Network</b> tab while you use it. Nothing is sent.</li>
+      <li>It's open source: <a href="https://github.com/ValueZen-ai/ai-propensity/tree/main/converter" target="_blank" rel="noopener noreferrer">github.com/ValueZen-ai/ai-propensity</a>. It uses the same rules as the command-line collector, and automated tests check that both produce identical files.</li>
+    </ul>
+    <p id="version"></p>
+  </footer>
+</main>
+<script>__SCRIPT__</script>
+</body>
+</html>

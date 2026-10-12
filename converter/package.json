@@ -1,0 +1,10 @@
+{
+  "name": "ai-propensity-converter",
+  "private": true,
+  "type": "module",
+  "description": "Builds and tests ai-propensity-converter.html. No dependencies.",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}

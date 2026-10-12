@@ -14,6 +14,7 @@
 [![License: FSL-1.1-ALv2](https://img.shields.io/badge/license-FSL--1.1--ALv2-blue)](LICENSE.md)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-ff69b4)](https://github.com/ValueZen-ai/ai-propensity/pulls)
 
+[💬 ChatGPT / Claude.ai — no install](#-use-chatgpt-or-claudeai-no-install-no-python) ·
 [🚀 Quickstart](#-quickstart) ·
 [🔍 What gets sent](#-dont-take-our-word-for-it--see-exactly-what-gets-sent) ·
 [🔌 Install](#-install--claude-code-adapter) ·
@@ -28,6 +29,8 @@
 
 This tool extracts AI propensity signals — metadata about how you use AI, never the content of what you asked or built — from **Claude Code**, **Codex**, **Claude.ai**, and **ChatGPT**, and turns them into your **AI Propensity Index** on Valuezen. Takes under a minute. Runs entirely on your own device.
 
+> **Use ChatGPT or Claude.ai?** You don't need Python or a terminal. [Download the converter](https://github.com/ValueZen-ai/ai-propensity/releases/latest/download/ai-propensity-converter.html), open it in your browser, and drop your data export on it. [How it works ↓](#-use-chatgpt-or-claudeai-no-install-no-python)
+
 ```text
  💻 Local AI history  ──▶  🧹 Metadata only  ──▶  📄 One JSON file  ──▶  🌐 Upload (you choose)  ──▶  📈 Your Index
  (Claude Code, Codex,      (no prompts, no        (you can read it)      app.valuezen.ai/ai-native
@@ -39,11 +42,12 @@ This tool extracts AI propensity signals — metadata about how you use AI, neve
 - [What is "AI propensity"?](#-what-is-ai-propensity)
 - [Why this exists](#-why-this-exists)
 - [What it does](#-what-it-does)
-- [Quickstart](#-quickstart)
+- [Use ChatGPT or Claude.ai? No install, no Python](#-use-chatgpt-or-claudeai-no-install-no-python)
+- [Quickstart](#-quickstart) (Claude Code, Codex)
 - [What you get](#-what-you-get)
 - [See exactly what gets sent](#-dont-take-our-word-for-it--see-exactly-what-gets-sent)
 - [Requirements](#-requirements)
-- [Install](#-install--claude-code-adapter) — [Claude Code](#-install--claude-code-adapter) · [Codex](#-install--codex-adapter) · [claude-web / chatgpt](#-install--claude-web--chatgpt-adapters-export-import)
+- [Install](#-install--claude-code-adapter) — [Claude Code](#-install--claude-code-adapter) · [Codex](#-install--codex-adapter) · [claude-web / chatgpt (command line)](#-command-line--claude-web--chatgpt-adapters-export-import)
 - [Usage](#%EF%B8%8F-usage)
 - [Export to Valuezen](#-export-to-valuezen)
 - [Reference](#-reference)
@@ -83,14 +87,38 @@ The signal about how you use AI is scattered across four different tools, each w
 |---|---|---|---|
 | **Claude Code** | `adapters/claude-code/` | Backfill | ✅ Verified against real local history |
 | **Codex** (CLI + VS Code) | `adapters/codex/` | Backfill | ✅ Verified against real local history |
-| **Claude.ai** | `adapters/claude-web/` | Export-file import | ✅ Verified against a real export |
-| **ChatGPT** | `adapters/chatgpt/` | Export-file import | ✅ Verified against a real export |
+| **Claude.ai** | `converter/` (browser) · `adapters/claude-web/` (CLI) | Export-file import | ✅ Verified against a real export |
+| **ChatGPT** | `converter/` (browser) · `adapters/chatgpt/` (CLI) | Export-file import | ✅ Verified against a real export |
 
-Four adapters, one schema.
+Four adapters, one schema. For Claude.ai and ChatGPT, the browser converter and the command line give you exactly the same file.
+
+---
+
+## 💬 Use ChatGPT or Claude.ai? No install, no Python
+
+ChatGPT and Claude.ai keep your history on their servers, so the way in is the data export each one lets you download. The **converter** is a single web page that turns that export into the upload file, on your own computer:
+
+1. **[Download `ai-propensity-converter.html`](https://github.com/ValueZen-ai/ai-propensity/releases/latest/download/ai-propensity-converter.html)** and double-click it. It opens in your browser like any web page. (Or use the same page online: [valuezen-ai.github.io/ai-propensity](https://valuezen-ai.github.io/ai-propensity/).)
+2. **Get your export.** In ChatGPT: Settings → Data controls → Export data. In Claude: Settings → Privacy → Export data. Each emails you a `.zip`.
+3. **Drop the `.zip` (or the folder it unzipped into) onto the page.** It shows exactly what the evidence file contains. You can search it for anything you wrote to confirm it isn't there.
+4. **Download the evidence file.** It goes to your Downloads folder, and the page tells you its name. Upload it at **[app.valuezen.ai/ai-native](https://app.valuezen.ai/ai-native)**.
+
+Use both? Add both exports and you get one file covering both.
+
+**Why you can trust it with your chats:**
+
+- 🔌 **It can't send anything.** The page's [Content-Security-Policy](https://developer.mozilla.org/docs/Web/HTTP/CSP) (`connect-src 'none'`, the first lines of *View page source*) makes your browser block every network request from it. It works with Wi-Fi off, so try it that way.
+- 🧾 **Everything is in that one file.** There are no add-ons, no tracking and no outside code, and you can read it all with *View page source*.
+- 👀 **You see the result before you keep it.** The page shows what's in the evidence file, and you can search it for anything you wrote.
+- 🔐 **You can check your copy is genuine.** Each release lists the file's checksum (`ai-propensity-converter.html.sha256`).
+
+The command-line route below still works the same for ChatGPT and Claude.ai, and it's the only route for Claude Code and Codex.
 
 ---
 
 ## 🚀 Quickstart
+
+*For Claude Code and Codex. For ChatGPT or Claude.ai, use [the converter](#-use-chatgpt-or-claudeai-no-install-no-python) instead.*
 
 ```bash
 git clone https://github.com/ValueZen-ai/ai-propensity.git
@@ -187,7 +215,7 @@ Notice what's *not* there: no message text, no diffs, no filenames, no repo name
 - Python 3 (standard library only — no pip installs needed). On Windows the command is usually `python`, not `python3` — substitute it in every command below if `python3` isn't found.
 - Claude Code adapter: Claude Code itself, live
 - Codex adapter: Codex CLI or the Codex VS Code extension, run at least once (writes to `~/.codex/sessions/`, or `%USERPROFILE%\.codex\sessions\` on Windows)
-- claude-web / chatgpt adapters: a personal data export from that product (Settings → Export data)
+- claude-web / chatgpt: a personal data export from that product (Settings → Export data). The [converter](#-use-chatgpt-or-claudeai-no-install-no-python) needs only a current browser (Chrome, Edge, Firefox or Safari 16.4+), with no Python.
 
 All paths shown as `~/.valuezen/...` resolve the same way on Windows, since the code uses Python's `Path.home()` rather than a shell path — on Windows that's `%USERPROFILE%\.valuezen\...`. `install.sh`/`uninstall.sh` are bash scripts; run them from Git Bash or WSL, or skip them entirely and use the plugin install (Option A below), which doesn't need a shell script at all.
 
@@ -233,7 +261,9 @@ There's no live/automatic mode to switch on — run `sync` by hand whenever you 
 
 ---
 
-## 🌐 Install — claude-web / chatgpt adapters (export import)
+## 🌐 Command line — claude-web / chatgpt adapters (export import)
+
+*Most people should use the [converter](#-use-chatgpt-or-claudeai-no-install-no-python) instead. It produces the same file with no install. This route is for scripting, or if you'd rather run Python.*
 
 These have no local hook surface to attach to — the product runs server-side, so a personal data export is the only channel available. Instead:
 
@@ -326,6 +356,7 @@ core/                          — adapter-agnostic, shared by every adapter:
 ├── summary.py                  —   raw-tally printer (no scoring)
 ├── shell_signals.py             —   shared test-runner detection + file-extension→language map
 └── llm_classify.py              —   LLM self-classification machinery (deferred — not wired into any adapter's CLI)
+converter/                     — the no-install converter for Claude.ai / ChatGPT exports (see converter/README.md)
 adapters/
 ├── claude-code/collect.py     —   built, verified against real local history
 ├── codex/collect.py           —   built, verified against real local history (CLI + VS Code extension)

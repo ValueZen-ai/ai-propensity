@@ -1,0 +1,1392 @@
+<!doctype html>
+<!--
+  AI Propensity converter — turns a ChatGPT or Claude data export into an
+  AI Propensity evidence file, entirely inside this page.
+
+  Check it yourself:
+   * The Content-Security-Policy below has connect-src 'none' and
+     default-src 'none': your browser blocks this page from making any
+     network request at all, and only the one script and one stylesheet
+     whose hashes are listed can run.
+   * Source, tests and build script: https://github.com/ValueZen-ai/ai-propensity/tree/main/converter
+     This file is generated from converter/src by converter/build.mjs;
+     CI fails if it differs from a fresh build.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-yrCQBbfPRlP9Kz1sfVJNn1I+DIQLZifvLDSkYuEl8HE='; style-src 'sha256-MKv496RrX9+segsuLKlh1WdagcbLMf0nqzzs3EnwtW0='; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>AI Propensity Converter</title>
+<style>
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --ink: #1d1b18;
+  --muted: #625d55;
+  --line: #e4e0d8;
+  --accent: #d9622b;
+  --accent-ink: #ffffff;
+  --accent-soft: #fbeee6;
+  --ok: #1f7a4d;
+  --ok-soft: #e5f4ec;
+  --bad: #b3261e;
+  --bad-soft: #fbe9e7;
+  --code-bg: #f2efe9;
+  --radius: 12px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161513;
+    --surface: #1f1d1a;
+    --ink: #f1eee8;
+    --muted: #a8a196;
+    --line: #34312c;
+    --accent: #f08a55;
+    --accent-ink: #1a0f08;
+    --accent-soft: #3a2519;
+    --ok: #6fcf9b;
+    --ok-soft: #173326;
+    --bad: #f2a29b;
+    --bad-soft: #3d1d1a;
+    --code-bg: #262420;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 1.75rem; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.01em; }
+h2 { font-size: 1.15rem; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+p { margin: 0 0 12px; }
+a { color: var(--accent); }
+code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85em; }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+[hidden] { display: none !important; }
+
+.eyebrow { color: var(--muted); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
+.lede { color: var(--muted); font-size: 1.05rem; margin-bottom: 20px; }
+
+.promise {
+  list-style: none; padding: 14px 16px; margin: 0 0 28px;
+  background: var(--ok-soft); border-radius: var(--radius);
+  display: grid; gap: 8px;
+}
+.promise li { display: flex; gap: 10px; align-items: flex-start; }
+.promise svg { flex: none; margin-top: 3px; color: var(--ok); }
+
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px; margin-bottom: 16px;
+}
+.step {
+  flex: none; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink);
+  font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
+}
+
+.tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.tab {
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+  padding: 6px 14px; border-radius: 999px; font: inherit; font-size: 0.9rem; cursor: pointer;
+}
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+ol.howto { margin: 0 0 8px; padding-left: 22px; }
+ol.howto li { margin-bottom: 4px; }
+.hint { color: var(--muted); font-size: 0.9rem; }
+
+.drop {
+  border: 2px dashed var(--line); border-radius: var(--radius);
+  padding: 28px 16px; text-align: center; transition: border-color .15s, background .15s;
+}
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop strong { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+.buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: 10px 16px; border-radius: 10px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.05); }
+.btn:focus-visible, .tab:focus-visible, .linkbtn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn.big { padding: 14px 22px; font-size: 1.05rem; }
+.linkbtn { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; padding: 0; text-decoration: underline; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.status { margin-top: 14px; min-height: 1.5em; color: var(--muted); }
+.error { background: var(--bad-soft); color: var(--bad); border-radius: 10px; padding: 12px 14px; margin-top: 14px; }
+
+.exports { display: grid; gap: 10px; margin-bottom: 16px; }
+.export {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border: 1px solid var(--line); border-radius: 10px;
+}
+.export .what { flex: 1; min-width: 0; }
+.export .what b { display: block; }
+.export .what span { color: var(--muted); font-size: 0.9rem; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.stat { background: var(--code-bg); border-radius: 10px; padding: 10px 12px; }
+.stat b { display: block; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 0.85rem; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 560px) { .split { grid-template-columns: 1fr; } }
+.split h3 { font-size: 0.95rem; margin: 0 0 6px; }
+.split ul { margin: 0; padding-left: 18px; font-size: 0.92rem; }
+.split .no li::marker { content: "✕  "; color: var(--bad); }
+.split .yes li::marker { content: "✓  "; color: var(--ok); }
+
+.search { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 4px; }
+.search input {
+  flex: 1; min-width: 200px; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit;
+}
+.search-result { min-height: 1.5em; font-size: 0.95rem; }
+.search-result.ok { color: var(--ok); }
+.search-result.found { color: var(--muted); }
+
+details { margin-top: 12px; }
+summary { cursor: pointer; font-weight: 600; }
+pre.json {
+  background: var(--code-bg); border-radius: 10px; padding: 12px; margin: 10px 0 0;
+  max-height: 420px; overflow: auto; white-space: pre; line-height: 1.45;
+}
+
+.download { text-align: center; padding-top: 4px; }
+.download p { margin-top: 12px; }
+.saved { background: var(--ok-soft); border-radius: 10px; padding: 12px 14px; margin-top: 14px; text-align: left; }
+.saved p { margin: 0; }
+.saved p + p { margin-top: 6px; }
+.saved p:first-child b { color: var(--ok); }
+
+footer { margin-top: 32px; color: var(--muted); font-size: 0.88rem; }
+footer h2 { font-size: 0.95rem; color: var(--ink); }
+footer ul { padding-left: 18px; margin: 0 0 12px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">AI Propensity · by Valuezen</div>
+    <h1>Turn your ChatGPT or Claude export into an evidence file</h1>
+    <p class="lede">This page works entirely on your computer. It reads your chat export, keeps only counts, and gives you a small file you can check before you choose to upload it.</p>
+  </header>
+
+  <ul class="promise">
+    <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>
+      <span><b>Nothing to install, no account.</b> It all happens inside this browser tab.</span></li>
+    <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>
+      <span><b>This page can't connect to the internet.</b> It's locked by a security setting your browser enforces. To be sure, turn off Wi-Fi before you start.</span></li>
+    <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"/></svg>
+      <span><b>Your messages stay out of it.</b> No message text, no titles and no file names go into the file. You can search it yourself before saving.</span></li>
+  </ul>
+
+  <section class="card" aria-labelledby="s1">
+    <h2 id="s1"><span class="step">1</span> Download your data export</h2>
+    <div class="tabs" role="tablist" aria-label="Which product">
+      <button class="tab" role="tab" id="tab-chatgpt" aria-controls="howto-chatgpt" aria-selected="true">ChatGPT</button>
+      <button class="tab" role="tab" id="tab-claude" aria-controls="howto-claude" aria-selected="false" tabindex="-1">Claude</button>
+    </div>
+    <div role="tabpanel" id="howto-chatgpt" aria-labelledby="tab-chatgpt">
+      <ol class="howto">
+        <li>Open <b>chatgpt.com</b>, click your profile picture, then <b>Settings</b>.</li>
+        <li>Go to <b>Data controls</b> → <b>Export data</b> → <b>Export</b>.</li>
+        <li>ChatGPT emails you a download link. It can take a few minutes to a few hours, and the link expires after 24 hours. Download the <code>.zip</code>.</li>
+      </ol>
+    </div>
+    <div role="tabpanel" id="howto-claude" aria-labelledby="tab-claude" hidden>
+      <ol class="howto">
+        <li>Open <b>claude.ai</b>, click your name (bottom left), then <b>Settings</b>.</li>
+        <li>Go to <b>Privacy</b> → <b>Export data</b>.</li>
+        <li>Claude emails you a download link. Download the <code>.zip</code>.</li>
+      </ol>
+    </div>
+    <p class="hint">Use both? Export from each one and add both in step 2. You'll get one file that covers both.</p>
+  </section>
+
+  <section class="card" aria-labelledby="s2">
+    <h2 id="s2"><span class="step">2</span> Add your export</h2>
+    <div class="drop" id="drop">
+      <strong>Drop the export <code>.zip</code> here</strong>
+      <span class="hint">or the folder it unzipped into</span>
+      <div class="buttons">
+        <button class="btn primary" id="pick-file" type="button">Choose .zip file</button>
+        <button class="btn" id="pick-folder" type="button">Choose unzipped folder</button>
+      </div>
+      <input class="sr-only" id="file-input" type="file" accept=".zip,.json,application/zip,application/json" multiple tabindex="-1" aria-hidden="true">
+      <input class="sr-only" id="folder-input" type="file" webkitdirectory multiple tabindex="-1" aria-hidden="true">
+    </div>
+    <p class="hint">On a Mac, Safari often unzips downloads by itself. If you see a folder instead of a <code>.zip</code>, choose the folder.</p>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+    <div class="error" id="error" role="alert" hidden></div>
+  </section>
+
+  <section class="card" id="review" aria-labelledby="s3" hidden>
+    <h2 id="s3"><span class="step">3</span> Check what's in the file</h2>
+    <div class="exports" id="exports"></div>
+    <div class="stats" id="stats"></div>
+    <div class="split">
+      <div>
+        <h3>What the file contains</h3>
+        <ul class="yes" id="included"></ul>
+      </div>
+      <div>
+        <h3>What it never contains</h3>
+        <ul class="no">
+          <li>Your messages or the AI's replies</li>
+          <li>Conversation titles</li>
+          <li>Names of files or images you shared</li>
+          <li>Your name, email or account details</li>
+        </ul>
+      </div>
+    </div>
+    <label for="search"><b>Check for yourself.</b> Type something you wrote in a chat, and we'll search the file for it.</label>
+    <div class="search">
+      <input id="search" type="search" autocomplete="off" spellcheck="false" placeholder="e.g. a phrase from one of your chats">
+    </div>
+    <div class="search-result" id="search-result" aria-live="polite"></div>
+    <details id="raw">
+      <summary>See the file itself</summary>
+      <p class="hint" id="fields"></p>
+      <pre class="json" id="json"></pre>
+      <button class="linkbtn" id="show-all" type="button" hidden>Show the whole file</button>
+    </details>
+  </section>
+
+  <section class="card download" id="save" aria-labelledby="s4" hidden>
+    <h2 id="s4"><span class="step">4</span> Save it, then upload it</h2>
+    <button class="btn primary big" id="download" type="button">Download evidence file</button>
+    <div class="saved" id="saved" role="status" aria-live="polite" hidden>
+      <p><b>✓ Saved to your Downloads folder</b> as <code id="saved-name"></code></p>
+      <p class="hint">Can't see it? Click the download icon near your browser's address bar and choose <b>Show in folder</b> (or <b>Show in Finder</b>). If your browser asks where to save files, it's in the folder you picked.</p>
+    </div>
+    <p class="hint" id="filename"></p>
+    <p>Next, go to <a href="https://app.valuezen.ai/ai-native" target="_blank" rel="noopener noreferrer"><b>app.valuezen.ai/ai-native</b></a> and upload the file from your Downloads folder. You'll see your AI Propensity Index right away, and you don't need an account to preview it.</p>
+  </section>
+
+  <footer>
+    <h2>Check this page for yourself</h2>
+    <ul>
+      <li>Right-click → <b>View page source</b>. Near the top, the security policy says <code>connect-src 'none'</code>, which tells your browser to block every network request from this page.</li>
+      <li>Open your browser's developer tools and watch the <b>Network</b> tab while you use it. Nothing is sent.</li>
+      <li>It's open source: <a href="https://github.com/ValueZen-ai/ai-propensity/tree/main/converter" target="_blank" rel="noopener noreferrer">github.com/ValueZen-ai/ai-propensity</a>. It uses the same rules as the command-line collector, and automated tests check that both produce identical files.</li>
+    </ul>
+    <p id="version"></p>
+  </footer>
+</main>
+<script>
+"use strict";
+// ---- src/zip.js ----
+const __zip = (() => {
+/*
+ * Minimal, read-only ZIP reader built on the browser's own
+ * DecompressionStream — no third-party code, so there is nothing in this
+ * page that isn't in this repo.
+ *
+ * It reads the zip's central directory from the end of the file and then
+ * only the entries it is asked for, straight from disk (Blob.slice), so a
+ * multi-GB ChatGPT export full of images never has to fit in memory — only
+ * the conversations*.json entries are ever decompressed.
+ *
+ * Supports stored (0) and deflate (8) entries and ZIP64 archives. Encrypted
+ * entries and other compression methods are reported, not guessed at.
+ */
+
+const EOCD_SIG = 0x06054b50;
+const ZIP64_LOCATOR_SIG = 0x07064b50;
+const ZIP64_EOCD_SIG = 0x06064b50;
+const CENTRAL_SIG = 0x02014b50;
+const LOCAL_SIG = 0x04034b50;
+
+async function readBytes(blob, start, end) {
+  return new DataView(await blob.slice(start, end).arrayBuffer());
+}
+
+function u64(view, offset) {
+  // Archive offsets/sizes stay far below 2^53, so a Number is exact.
+  return view.getUint32(offset, true) + view.getUint32(offset + 4, true) * 0x100000000;
+}
+
+async function findCentralDirectory(blob) {
+  // The end-of-central-directory record is 22 bytes plus an optional
+  // comment of up to 65535 bytes, so it's somewhere in the last 64 KiB.
+  const tailStart = Math.max(0, blob.size - (22 + 65535));
+  const tail = await readBytes(blob, tailStart, blob.size);
+  let eocd = -1;
+  for (let i = tail.byteLength - 22; i >= 0; i--) {
+    if (tail.getUint32(i, true) === EOCD_SIG) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("This doesn't look like a zip file.");
+
+  let count = tail.getUint16(eocd + 10, true);
+  let size = tail.getUint32(eocd + 12, true);
+  let offset = tail.getUint32(eocd + 16, true);
+
+  const locator = eocd - 20;
+  if (locator >= 0 && tail.getUint32(locator, true) === ZIP64_LOCATOR_SIG) {
+    const z64Offset = u64(tail, locator + 8);
+    const z64 = await readBytes(blob, z64Offset, z64Offset + 56);
+    if (z64.getUint32(0, true) !== ZIP64_EOCD_SIG) throw new Error("This zip file looks damaged (bad ZIP64 record).");
+    count = u64(z64, 32);
+    size = u64(z64, 40);
+    offset = u64(z64, 48);
+  }
+  return { count, size, offset };
+}
+
+function applyZip64Extra(view, start, length, entry) {
+  // Only fields that were 0xFFFFFFFF in the fixed header appear here, in
+  // this fixed order.
+  let p = start;
+  const end = start + length;
+  while (p + 4 <= end) {
+    const id = view.getUint16(p, true);
+    const len = view.getUint16(p + 2, true);
+    if (id === 0x0001) {
+      let q = p + 4;
+      if (entry.uncompressedSize === 0xffffffff) { entry.uncompressedSize = u64(view, q); q += 8; }
+      if (entry.compressedSize === 0xffffffff) { entry.compressedSize = u64(view, q); q += 8; }
+      if (entry.localOffset === 0xffffffff) { entry.localOffset = u64(view, q); }
+      return;
+    }
+    p += 4 + len;
+  }
+}
+
+/**
+ * List a zip's entries in central-directory order. Each entry is
+ * {name, compressedSize, uncompressedSize, text()} — text() decompresses
+ * just that entry and decodes it as UTF-8.
+ */
+async function listZipEntries(blob) {
+  if (typeof DecompressionStream === "undefined") {
+    throw new Error("This browser is too old to open zip files here. Please update it, or unzip the export and choose the folder instead.");
+  }
+  const cd = await findCentralDirectory(blob);
+  const view = await readBytes(blob, cd.offset, cd.offset + cd.size);
+  const decoder = new TextDecoder("utf-8");
+  const entries = [];
+  let p = 0;
+  for (let i = 0; i < cd.count; i++) {
+    if (view.getUint32(p, true) !== CENTRAL_SIG) throw new Error("This zip file looks damaged (bad directory entry).");
+    const flags = view.getUint16(p + 8, true);
+    const entry = {
+      method: view.getUint16(p + 10, true),
+      encrypted: (flags & 1) === 1,
+      compressedSize: view.getUint32(p + 20, true),
+      uncompressedSize: view.getUint32(p + 24, true),
+      localOffset: view.getUint32(p + 42, true),
+    };
+    const nameLen = view.getUint16(p + 28, true);
+    const extraLen = view.getUint16(p + 30, true);
+    const commentLen = view.getUint16(p + 32, true);
+    entry.name = decoder.decode(new Uint8Array(view.buffer, view.byteOffset + p + 46, nameLen));
+    applyZip64Extra(view, p + 46 + nameLen, extraLen, entry);
+    p += 46 + nameLen + extraLen + commentLen;
+    if (entry.name.endsWith("/")) continue; // directory
+    entries.push(makeEntry(blob, entry));
+  }
+  return entries;
+}
+
+function makeEntry(blob, entry) {
+  return {
+    name: entry.name,
+    compressedSize: entry.compressedSize,
+    uncompressedSize: entry.uncompressedSize,
+    async text() {
+      if (entry.encrypted) throw new Error(`${entry.name} is password-protected, so it can't be read.`);
+      const local = await readBytes(blob, entry.localOffset, entry.localOffset + 30);
+      if (local.getUint32(0, true) !== LOCAL_SIG) throw new Error("This zip file looks damaged (bad file header).");
+      const dataStart = entry.localOffset + 30 + local.getUint16(26, true) + local.getUint16(28, true);
+      const data = blob.slice(dataStart, dataStart + entry.compressedSize);
+      if (entry.method === 0) return data.text();
+      if (entry.method === 8) {
+        return new Response(data.stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+      }
+      throw new Error(`${entry.name} uses a compression method this page can't read (${entry.method}). Unzip the export and choose the folder instead.`);
+    },
+  };
+}
+return { listZipEntries };
+})();
+
+// ---- src/convert.js ----
+const __convert = (() => {
+/*
+ * AI Propensity Signal Collector — export converter (browser port of the
+ * claude-web and chatgpt adapters).
+ *
+ * This is a line-for-line port of:
+ *   adapters/claude-web/collect.py  (_load_export, _messages_of, _features_of, cmd_import)
+ *   adapters/chatgpt/collect.py     (_load_export, _merge_conversation_lists, _messages_of,
+ *                                    _features_of, _iso, cmd_import)
+ *   core/event_schema.py            (make_event, duration_seconds, utcnow)
+ *   core/export.py                  (export_evidence's payload shape and event order)
+ * and must produce the same events for the same export — tests/test_converter_parity.py
+ * runs both on the same inputs and fails on any difference. If you change
+ * what one of them extracts, change the other in the same commit.
+ *
+ * Message text is read only to measure its length (and to skip blank
+ * messages, as the Python does). No text, title, file name or attachment
+ * name is ever copied into an event.
+ *
+ * Python semantics the port has to reproduce, because the numbers must
+ * match: dict.get (a present-but-null key returns null, not the default),
+ * truthiness ([] and {} are false), len() counting code points rather than
+ * UTF-16 units, and str.strip()'s definition of whitespace.
+ */
+
+const CONVERTER_VERSION = "1.0.0";
+const SCHEMA_VERSION = 1;
+// Same values as PARSER_VERSION in each adapter's collect.py.
+const PARSER_VERSIONS = { claude_web: 2, chatgpt: 2 };
+const PROVENANCE = "browser_converter";
+
+// ---------------------------------------------------------------------------
+// Python-semantics helpers
+// ---------------------------------------------------------------------------
+
+function isDict(v) {
+  return v !== null && typeof v === "object" && !Array.isArray(v);
+}
+
+/** dict.get(key, default): a key that is present with a null value returns null. */
+function get(obj, key, dflt = undefined) {
+  return isDict(obj) && Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : dflt;
+}
+
+function truthy(v) {
+  if (v === null || v === undefined || v === false || v === 0 || v === "") return false;
+  if (Array.isArray(v)) return v.length > 0;
+  if (isDict(v)) return Object.keys(v).length > 0;
+  return true;
+}
+
+/** `a or b` */
+function or(...values) {
+  for (const v of values.slice(0, -1)) if (truthy(v)) return v;
+  return values[values.length - 1];
+}
+
+function asList(v) {
+  return Array.isArray(v) ? v : isDict(v) ? Object.values(v) : [];
+}
+
+/** str(x) for the values that can reach it here. */
+function pyStr(v) {
+  if (v === null || v === undefined) return "None";
+  if (v === true) return "True";
+  if (v === false) return "False";
+  if (typeof v === "string") return v;
+  return typeof v === "object" ? JSON.stringify(v) : String(v);
+}
+
+/** len(s): code points, not UTF-16 units (an emoji is 1, not 2). */
+function pyLen(s) {
+  let n = s.length;
+  for (let i = 0; i < s.length - 1; i++) {
+    const c = s.charCodeAt(i);
+    if (c >= 0xd800 && c <= 0xdbff) {
+      const d = s.charCodeAt(i + 1);
+      if (d >= 0xdc00 && d <= 0xdfff) { n--; i++; }
+    }
+  }
+  return n;
+}
+
+// The characters Python's str.isspace() accepts (what str.strip() removes).
+const PY_NOT_SPACE = new RegExp("[^" + [0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x85, 0xa0,
+  0x1680, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200a,
+  0x2028, 0x2029, 0x202f, 0x205f, 0x3000].map((c) => "\\u" + c.toString(16).padStart(4, "0")).join("") + "]");
+function isBlank(s) {
+  return !PY_NOT_SPACE.test(s);
+}
+
+function startsWithAny(s, prefixes) {
+  return typeof s === "string" && prefixes.some((p) => s.startsWith(p));
+}
+
+/** sorted() over strings: code point order. */
+function pySorted(strings) {
+  return [...strings].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
+function lower(v) {
+  return typeof v === "string" ? v.toLowerCase() : "";
+}
+
+// ---------------------------------------------------------------------------
+// core/event_schema.py
+// ---------------------------------------------------------------------------
+
+function isoSeconds(date) {
+  return date.toISOString().slice(0, 19) + "Z";
+}
+
+function utcnow() {
+  return isoSeconds(new Date());
+}
+
+/** ts_to_seconds: strptime(ts[:19], "%Y-%m-%dT%H:%M:%S") read as UTC, or null. */
+function tsToSeconds(ts) {
+  if (typeof ts !== "string" || !ts) return null;
+  const m = /^(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{1,2}):(\d{1,2})$/.exec(ts.slice(0, 19));
+  if (!m) return null;
+  const [y, mo, d, h, mi, s] = m.slice(1).map(Number);
+  const ms = Date.UTC(y, mo - 1, d, h, mi, s);
+  const back = new Date(ms);
+  if (back.getUTCFullYear() !== y || back.getUTCMonth() !== mo - 1 || back.getUTCDate() !== d
+      || back.getUTCHours() !== h || back.getUTCMinutes() !== mi || back.getUTCSeconds() !== s) {
+    return null; // strptime rejects e.g. Feb 30 or 25:00
+  }
+  return Math.floor(ms / 1000);
+}
+
+function durationSeconds(startTs, endTs) {
+  const s = tsToSeconds(startTs);
+  const e = tsToSeconds(endTs);
+  return s && e && e >= s ? e - s : null;
+}
+
+function makeEvent(type, sessionId, source, extra, ts) {
+  return {
+    schema_version: SCHEMA_VERSION,
+    ts: truthy(ts) ? ts : utcnow(),
+    event: type,
+    source,
+    session_id: sessionId,
+    historical: true,
+    observed_at: utcnow(),
+    provenance: PROVENANCE,
+    ...extra,
+  };
+}
+
+function sum(items, fn) {
+  let total = 0;
+  for (const x of items) total += fn(x);
+  return total;
+}
+
+// ---------------------------------------------------------------------------
+// adapters/claude-web/collect.py
+// ---------------------------------------------------------------------------
+
+const CLAUDE_CANDIDATES = ["conversations.json", "conversations_v2.json"];
+const CLAUDE_WEB_TOOLS = ["web_search", "web_search_fast", "web_fetch"];
+const CLAUDE_CREATE_TOOLS = ["create_file", "artifacts", "repl", "present_files"];
+const IMAGE_EXTS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".heic"];
+const CLAUDE_CONNECTOR_PREFIXES = [
+  "google_drive", "gdrive", "gmail", "gcal", "google_calendar", "slack", "notion",
+  "github", "asana", "linear", "jira", "confluence", "atlassian",
+];
+
+function claudeFeaturesOf(conversation) {
+  const features = new Set();
+  for (const m of asList(or(get(conversation, "chat_messages", []), []))) {
+    if (truthy(get(m, "attachments"))) features.add("file_upload");
+    for (const f of asList(or(get(m, "files"), []))) {
+      const name = lower(or(get(or(f, {}), "file_name"), ""));
+      features.add(IMAGE_EXTS.some((ext) => name.endsWith(ext)) ? "image_input" : "file_upload");
+    }
+    for (const block of asList(or(get(m, "content"), []))) {
+      if (!isDict(block)) continue;
+      const kind = get(block, "type");
+      if (kind === "thinking") features.add("reasoning");
+      if (kind !== "tool_use") continue;
+      const name = lower(or(get(block, "name"), ""));
+      if (CLAUDE_WEB_TOOLS.includes(name)) features.add("web_search");
+      else if (CLAUDE_CREATE_TOOLS.includes(name)) features.add("created_files");
+      else if (name === "project_knowledge_search") features.add("projects");
+      else if (name.includes("research")) features.add("deep_research");
+      else if (startsWithAny(name, CLAUDE_CONNECTOR_PREFIXES)) features.add("connectors");
+    }
+  }
+  return features;
+}
+
+function claudeMessagesOf(conversation) {
+  const out = [];
+  for (const m of asList(or(get(conversation, "chat_messages", []), []))) {
+    const role = or(get(m, "sender"), get(m, "role"), "");
+    let text = get(m, "text", "");
+    if (Array.isArray(text)) {
+      text = text.filter(isDict).map((c) => pyStr(get(c, "text", ""))).join(" ");
+    }
+    out.push({ role, text: typeof text === "string" ? text : truthy(text) ? pyStr(text) : "",
+               ts: or(get(m, "created_at"), get(m, "timestamp"), "") });
+  }
+  return out;
+}
+
+const isClaudeUser = (role) => role === "human" || role === "user";
+
+function convertClaudeWeb(conversations) {
+  const source = "claude_web";
+  const events = [];
+  const stats = { conversations: conversations.length, imported: 0, empty: 0, noId: 0 };
+  for (const conv of conversations) {
+    const sessionId = or(get(conv, "uuid"), get(conv, "id"), "");
+    if (!truthy(sessionId)) { stats.noId++; continue; }
+    const messages = claudeMessagesOf(conv);
+    if (!messages.length) { stats.empty++; continue; }
+
+    const userTurns = messages.filter((m) => isClaudeUser(m.role)).length;
+    const aiTurns = messages.filter((m) => m.role === "assistant").length;
+    const startTs = or(get(conv, "created_at"), messages[0].ts);
+    const endTs = or(get(conv, "updated_at"), messages[messages.length - 1].ts);
+
+    events.push(makeEvent("session_start", sessionId, source, { project: "claude.ai" }, startTs));
+    for (const m of messages) {
+      if (m.role === "assistant") events.push(makeEvent("ai_turn", sessionId, source, {}, or(m.ts, startTs)));
+    }
+    events.push(makeEvent("session_end", sessionId, source, {
+      trigger: "export_import",
+      ai_turns: aiTurns,
+      user_turns: userTurns,
+      duration_seconds: durationSeconds(startTs, endTs),
+      user_chars_total: sum(messages.filter((m) => isClaudeUser(m.role)), (m) => pyLen(m.text)),
+      ai_chars_total: sum(messages.filter((m) => m.role === "assistant"), (m) => pyLen(m.text)),
+      features: pySorted(claudeFeaturesOf(conv)),
+    }, or(endTs, startTs)));
+    stats.imported++;
+  }
+  return { source, events, stats };
+}
+
+// ---------------------------------------------------------------------------
+// adapters/chatgpt/collect.py
+// ---------------------------------------------------------------------------
+
+const WEB_REFERENCE_TYPES = ["grouped_webpages", "webpage_extended", "webpage"];
+
+function chatgptMessagesOf(conversation) {
+  // Object.values keeps the export's key order for non-numeric keys, which
+  // ChatGPT's node ids always are — the same order Python's dict gives.
+  const nodes = [];
+  for (const node of asList(get(conversation, "mapping", {}))) {
+    const msg = get(node, "message");
+    if (!truthy(msg)) continue;
+    const role = get(or(get(msg, "author"), {}), "role", "");
+    const parts = asList(get(or(get(msg, "content"), {}), "parts", []));
+    const text = parts.filter((p) => typeof p === "string").join(" ");
+    if (isBlank(text)) continue;
+    nodes.push({
+      role,
+      text,
+      ts: get(msg, "create_time"),
+      model: get(or(get(msg, "metadata"), {}), "model_slug", ""),
+    });
+  }
+  const key = (n) => (truthy(n.ts) ? Number(n.ts) : 0);
+  nodes.sort((a, b) => key(a) - key(b)); // stable, like list.sort
+  return nodes;
+}
+
+function chatgptFeaturesOf(conversation) {
+  const features = new Set();
+  const template = or(get(conversation, "conversation_template_id"), get(conversation, "gizmo_id"), "");
+  if (typeof template === "string" && template.startsWith("g-p-")) features.add("projects");
+  if (truthy(get(conversation, "plugin_ids"))) features.add("connectors");
+
+  for (const node of asList(or(get(conversation, "mapping"), {}))) {
+    const msg = get(node, "message");
+    if (!truthy(msg)) continue;
+    const md = or(get(msg, "metadata"), {});
+    const content = or(get(msg, "content"), {});
+    const author = or(get(msg, "author"), {});
+    const role = get(author, "role", "");
+    const toolName = role === "tool" ? or(get(author, "name"), "") : "";
+    const recipient = or(get(msg, "recipient"), "");
+    const model = or(get(md, "model_slug"), "");
+
+    if (truthy(get(md, "search_result_groups"))
+        || asList(or(get(md, "content_references"), [])).some((r) => WEB_REFERENCE_TYPES.includes(get(or(r, {}), "type")))
+        || startsWithAny(toolName, ["web", "browser"]) || startsWithAny(recipient, ["web", "browser"])) {
+      features.add("web_search");
+    }
+
+    for (const a of asList(or(get(md, "attachments"), []))) {
+      const mime = or(get(or(a, {}), "mime_type"), "");
+      features.add(typeof mime === "string" && mime.startsWith("image/") ? "image_input" : "file_upload");
+    }
+    if (role === "user" && get(content, "content_type") === "multimodal_text") {
+      if (asList(or(get(content, "parts"), [])).some((part) => isDict(part) && get(part, "content_type") === "image_asset_pointer")) {
+        features.add("image_input");
+      }
+    }
+
+    const ctype = get(content, "content_type");
+    if (ctype === "thoughts" || ctype === "reasoning_recap" || (typeof model === "string" && model.includes("thinking"))) {
+      features.add("reasoning");
+    }
+    if (truthy(get(md, "async_task_title")) || (typeof model === "string" && model.includes("research"))) {
+      features.add("deep_research");
+    }
+    if (startsWithAny(toolName, ["canmore", "python", "dalle", "image_gen"]) || startsWithAny(recipient, ["canmore", "python"])) {
+      features.add("created_files");
+    }
+  }
+  return features;
+}
+
+function roundHalfEven(x) {
+  const r = Math.round(x);
+  return Math.abs(x % 1) === 0.5 && r % 2 !== 0 ? r - 1 : r;
+}
+
+/** _iso: unix seconds -> "YYYY-MM-DDTHH:MM:SSZ", or null. */
+function iso(unixTs) {
+  if (!truthy(unixTs)) return null;
+  const t = Number(unixTs);
+  if (!Number.isFinite(t)) return null;
+  // datetime.fromtimestamp: split off the fraction, round it half-to-even
+  // to microseconds (carrying into the seconds), then strftime drops it.
+  let seconds = Math.trunc(t);
+  const us = roundHalfEven((t - seconds) * 1e6);
+  if (us >= 1e6) seconds += 1;
+  else if (us < 0) seconds -= 1;
+  const d = new Date(seconds * 1000);
+  return Number.isNaN(d.getTime()) ? null : isoSeconds(d);
+}
+
+function convertChatGPT(conversations) {
+  const source = "chatgpt";
+  const events = [];
+  const stats = { conversations: conversations.length, imported: 0, empty: 0, noId: 0 };
+  for (const conv of conversations) {
+    const sessionId = or(get(conv, "conversation_id"), get(conv, "id"), "");
+    if (!truthy(sessionId)) { stats.noId++; continue; }
+    const messages = chatgptMessagesOf(conv);
+    if (!messages.length) { stats.empty++; continue; }
+
+    const userTurns = messages.filter((m) => m.role === "user").length;
+    const assistantTurns = messages.filter((m) => m.role === "assistant");
+    // `_iso(a) or (b and _iso(b))`
+    const first = messages[0].ts;
+    const last = messages[messages.length - 1].ts;
+    const startTs = or(iso(get(conv, "create_time")), truthy(first) ? iso(first) : first);
+    const endTs = or(iso(get(conv, "update_time")), truthy(last) ? iso(last) : last);
+
+    events.push(makeEvent("session_start", sessionId, source, { project: "chatgpt.com" }, startTs));
+    for (const m of assistantTurns) {
+      events.push(makeEvent("ai_turn", sessionId, source, { model: m.model === undefined ? "" : m.model }, or(iso(m.ts), startTs)));
+    }
+    events.push(makeEvent("session_end", sessionId, source, {
+      trigger: "export_import",
+      ai_turns: assistantTurns.length,
+      user_turns: userTurns,
+      duration_seconds: durationSeconds(startTs, endTs),
+      user_chars_total: sum(messages.filter((m) => m.role === "user"), (m) => pyLen(m.text)),
+      ai_chars_total: sum(assistantTurns, (m) => pyLen(m.text)),
+      features: pySorted(chatgptFeaturesOf(conv)),
+    }, or(endTs, startTs)));
+    stats.imported++;
+  }
+  return { source, events, stats };
+}
+
+// ---------------------------------------------------------------------------
+// Loading an export: a zip, an unzipped folder, or loose JSON file(s).
+// `files` is a list of {name, text()} — `name` is the path inside the zip
+// or folder. Mirrors each adapter's _load_export().
+// ---------------------------------------------------------------------------
+
+class ExportError extends Error {}
+
+const basename = (path) => path.split(/[\\/]/).pop();
+const depth = (path) => path.split(/[\\/]/).length;
+const byName = (a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+
+function isChatgptZipName(name) {
+  const base = basename(name);
+  return base === "conversations.json" || base.startsWith("conversations-");
+}
+
+function isChatgptSplitFile(name) {
+  const base = basename(name);
+  return base.startsWith("conversations-") && base.endsWith(".json");
+}
+
+function shallowest(files) {
+  return [...files].sort((a, b) => depth(a.name) - depth(b.name))[0];
+}
+
+async function parseJson(file) {
+  try {
+    return JSON.parse(await file.text());
+  } catch (err) {
+    throw new ExportError(`${basename(file.name)} isn't valid JSON (${err.message}). The file may be incomplete — try downloading the export again.`);
+  }
+}
+
+function sourceOf(list) {
+  const first = asList(list).find(isDict);
+  if (!first) return null;
+  if ("mapping" in first) return "chatgpt";
+  if ("chat_messages" in first) return "claude_web";
+  return null;
+}
+
+const NOT_AN_EXPORT =
+  "No conversations file found. Choose the export you downloaded from ChatGPT " +
+  "(Settings → Data controls → Export data) or Claude (Settings → Privacy → Export data) — " +
+  "the .zip from the email, or the folder it unzips to.";
+
+function looksLikeCodingTool(files) {
+  return files.some((f) => /(^|[\\/])\.?(claude|codex)[\\/]/.test(f.name) || /rollout-.*\.jsonl$/.test(f.name) || f.name.endsWith(".jsonl"));
+}
+
+/**
+ * Load one export into {source, conversations}. `fromZip` selects the
+ * zip-reading rules (vs. the folder rules) from the adapters, which differ
+ * slightly in which conversations file they prefer. `onRead(file)`, if
+ * given, is awaited before each file is read (for progress messages).
+ */
+async function loadExport(files, { fromZip = false, onRead = null } = {}) {
+  const parsed = new Map(); // name -> parsed JSON, so nothing is read twice
+  const read = async (f) => {
+    if (!parsed.has(f.name)) {
+      if (onRead) await onRead(f);
+      parsed.set(f.name, await parseJson(f));
+    }
+    return parsed.get(f.name);
+  };
+
+  // One loose .json file of any name: the adapters' "path is a .json file" case.
+  if (!fromZip && files.length === 1 && files[0].name.toLowerCase().endsWith(".json")) {
+    const raw = await read(files[0]);
+    if (!Array.isArray(raw)) throw new ExportError(`${basename(files[0].name)} isn't a conversations file from a ChatGPT or Claude export.`);
+    const source = sourceOf(raw);
+    if (!source && raw.length) throw new ExportError(`${basename(files[0].name)} doesn't look like a ChatGPT or Claude export.`);
+    if (!source) throw new ExportError("That file has no conversations in it.");
+    return { source, conversations: raw, files: [basename(files[0].name)], notes: [] };
+  }
+
+  const candidates = files.filter((f) => CLAUDE_CANDIDATES.includes(basename(f.name)) || isChatgptZipName(f.name));
+  if (!candidates.length) {
+    throw new ExportError(looksLikeCodingTool(files)
+      ? "This looks like Claude Code or Codex history, not a ChatGPT/Claude chat export. For those, use the command-line collector (see the README)."
+      : NOT_AN_EXPORT);
+  }
+
+  // Work out which product this is from the first conversation's shape —
+  // both products name their file conversations.json.
+  let source = null;
+  for (const f of candidates.filter((c) => c.name.toLowerCase().endsWith(".json"))) {
+    source = sourceOf(await read(f));
+    if (source) break;
+  }
+  if (!source) throw new ExportError("This export has no conversations in it (or its format isn't one this page recognises).");
+
+  const notes = [];
+  let chosen;
+  let conversations;
+  if (source === "claude_web") {
+    if (fromZip) {
+      // names[0] in the zip's own order
+      chosen = [files.find((f) => CLAUDE_CANDIDATES.includes(basename(f.name)))];
+    } else {
+      // Folder: conversations.json first, then conversations_v2.json.
+      for (const name of CLAUDE_CANDIDATES) {
+        const matches = files.filter((f) => basename(f.name) === name);
+        if (matches.length) { chosen = [shallowest(matches)]; break; }
+      }
+    }
+    const raw = await read(chosen[0]);
+    if (!Array.isArray(raw)) throw new ExportError("Expected the export's conversations file to be a list of conversations. The export format may have changed — please report it.");
+    conversations = raw;
+  } else {
+    if (fromZip) {
+      chosen = files.filter((f) => isChatgptZipName(f.name)).sort(byName);
+    } else {
+      const whole = files.filter((f) => basename(f.name) === "conversations.json");
+      chosen = whole.length ? [shallowest(whole)] : files.filter((f) => isChatgptSplitFile(f.name)).sort(byName);
+    }
+    // _merge_conversation_lists
+    conversations = [];
+    for (const f of chosen) {
+      const payload = await read(f);
+      if (!Array.isArray(payload)) { notes.push(`Skipped ${basename(f.name)}: not a list of conversations.`); continue; }
+      conversations.push(...payload);
+    }
+  }
+  return { source, conversations, files: chosen.map((f) => basename(f.name)), notes };
+}
+
+function convert(source, conversations) {
+  if (source === "claude_web") return convertClaudeWeb(conversations);
+  if (source === "chatgpt") return convertChatGPT(conversations);
+  throw new ExportError(`Unknown source ${source}`);
+}
+
+// ---------------------------------------------------------------------------
+// core/export.py::export_evidence — one upload file for one or more sources
+// ---------------------------------------------------------------------------
+
+function localDate(d = new Date()) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/**
+ * `results` is a list of convert() results. Returns {payload, filename}, or
+ * null when there are no events. Events come out in the order the Python
+ * export reads them: by day (ts[:10]), then in the order they were made.
+ */
+function buildEvidence(results) {
+  const today = localDate();
+  const keyed = [];
+  for (const r of results) {
+    for (const ev of r.events) {
+      keyed.push({ key: String(ev.ts || "").slice(0, 10) || today, ev });
+    }
+  }
+  if (!keyed.length) return null;
+  keyed.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)); // stable
+  const sources = pySorted(new Set(results.map((r) => r.source)));
+  const label = sources.join("+");
+  return {
+    payload: {
+      schema_version: SCHEMA_VERSION,
+      source: label,
+      exported_at: utcnow(),
+      tiers_included: ["basic"],
+      events: keyed.map((k) => k.ev),
+    },
+    filename: `propensity-evidence-${label}-${today}.json`,
+  };
+}
+return { CONVERTER_VERSION, SCHEMA_VERSION, PARSER_VERSIONS, PROVENANCE, utcnow, convertClaudeWeb, convertChatGPT, ExportError, loadExport, convert, localDate, buildEvidence };
+})();
+
+// ---- src/ui.js ----
+const __ui = (() => {
+/*
+ * The page: picks up the export the person drops or chooses, runs it
+ * through convert.js, shows what the resulting file contains, and saves it.
+ * Nothing here talks to a network — the page's Content-Security-Policy
+ * would block it if anything tried.
+ */
+
+const { CONVERTER_VERSION, PARSER_VERSIONS, ExportError, buildEvidence, convert, loadExport } = __convert;
+const { listZipEntries } = __zip;
+
+const $ = (id) => document.getElementById(id);
+
+const SOURCE_LABELS = { chatgpt: "ChatGPT", claude_web: "Claude" };
+const FEATURE_LABELS = {
+  web_search: "Web search",
+  file_upload: "File uploads",
+  image_input: "Images",
+  reasoning: "Thinking / reasoning",
+  deep_research: "Deep research",
+  projects: "Projects",
+  connectors: "Connectors / apps",
+  created_files: "Canvas / artifacts",
+};
+
+const exportsBySource = new Map(); // source -> {result, files, notes, from}
+let evidence = null; // {payload, filename, json}
+let showingAll = false;
+
+const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+const fmt = (n) => n.toLocaleString();
+
+function size(bytes) {
+  return bytes >= 1e6 ? `${(bytes / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1e3))} KB`;
+}
+
+function setStatus(text) {
+  $("status").textContent = text;
+}
+
+function showError(text) {
+  $("error").textContent = text;
+  $("error").hidden = !text;
+}
+
+// ---------------------------------------------------------------------------
+// Getting files in. Each "group" is one export: a zip, a folder, or a set
+// of loose JSON files chosen together.
+// ---------------------------------------------------------------------------
+
+function fileWrapper(file, name) {
+  return { name, size: file.size, text: () => file.text() };
+}
+
+function isZip(file) {
+  return file.name.toLowerCase().endsWith(".zip");
+}
+
+function groupsFromFileList(fileList) {
+  const files = [...fileList];
+  const groups = files.filter(isZip).map((file) => ({ kind: "zip", file, label: file.name }));
+  const loose = files.filter((f) => !isZip(f));
+  if (loose.length) {
+    const label = loose[0].webkitRelativePath ? loose[0].webkitRelativePath.split("/")[0] : loose.map((f) => f.name).join(", ");
+    groups.push({
+      kind: "files",
+      label,
+      files: loose.map((f) => fileWrapper(f, f.webkitRelativePath || f.name)),
+    });
+  }
+  return groups;
+}
+
+function entryFile(entry) {
+  return new Promise((resolve, reject) => entry.file(resolve, reject));
+}
+
+async function readDirectory(dirEntry) {
+  const out = [];
+  const reader = dirEntry.createReader();
+  for (;;) {
+    const batch = await new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+    if (!batch.length) break;
+    for (const entry of batch) {
+      if (entry.isDirectory) out.push(...await readDirectory(entry));
+      else out.push(fileWrapper(await entryFile(entry), entry.fullPath.replace(/^\//, "")));
+    }
+  }
+  return out;
+}
+
+function groupsFromDrop(dataTransfer) {
+  // Everything has to be pulled off the DataTransfer before the drop event
+  // returns, so this part is synchronous and the reading happens after.
+  const entries = [...(dataTransfer.items || [])]
+    .map((item) => (item.kind === "file" && item.webkitGetAsEntry ? item.webkitGetAsEntry() : null))
+    .filter(Boolean);
+  const fileList = dataTransfer.files;
+  return (async () => {
+    if (!entries.length) return groupsFromFileList(fileList);
+    const groups = [];
+    const loose = [];
+    for (const entry of entries) {
+      if (entry.isDirectory) {
+        setStatus(`Looking inside ${entry.name}…`);
+        groups.push({ kind: "files", label: entry.name, files: await readDirectory(entry) });
+      } else {
+        const file = await entryFile(entry);
+        if (isZip(file)) groups.push({ kind: "zip", file, label: file.name });
+        else loose.push(fileWrapper(file, file.name));
+      }
+    }
+    if (loose.length) groups.push({ kind: "files", label: loose.map((f) => f.name).join(", "), files: loose });
+    return groups;
+  })();
+}
+
+// ---------------------------------------------------------------------------
+// Converting
+// ---------------------------------------------------------------------------
+
+async function convertGroup(group) {
+  setStatus(`Opening ${group.label}…`);
+  await tick();
+  const onRead = async (f) => {
+    const bytes = f.uncompressedSize ?? f.size;
+    setStatus(`Reading ${f.name.split(/[\\/]/).pop()}${bytes == null ? "" : ` (${size(bytes)})`}…`);
+    await tick();
+  };
+  const files = group.kind === "zip" ? await listZipEntries(group.file) : group.files;
+  const loaded = await loadExport(files, { fromZip: group.kind === "zip", onRead });
+  setStatus(`Counting ${fmt(loaded.conversations.length)} conversations…`);
+  await tick();
+  const result = convert(loaded.source, loaded.conversations);
+  return { result, files: loaded.files, notes: loaded.notes, from: group.label };
+}
+
+async function handleGroups(groupsPromise) {
+  showError("");
+  let groups;
+  try {
+    groups = await groupsPromise;
+  } catch (err) {
+    showError(`Couldn't open that: ${err.message}`);
+    setStatus("");
+    return;
+  }
+  if (!groups.length) return;
+
+  const added = [];
+  for (const group of groups) {
+    try {
+      const converted = await convertGroup(group);
+      const { source, stats } = converted.result;
+      if (stats.imported === 0) {
+        showError(`No conversations could be read from ${group.label}. If the export isn't empty, its format may have changed. Please report it at github.com/ValueZen-ai/ai-propensity/issues.`);
+        continue;
+      }
+      const replaced = exportsBySource.has(source);
+      exportsBySource.set(source, converted);
+      added.push(`${SOURCE_LABELS[source]}${replaced ? " (replaced the earlier one)" : ""}`);
+    } catch (err) {
+      const message = err instanceof ExportError ? err.message : `Something went wrong reading ${group.label}: ${err.message}`;
+      showError(message);
+    }
+  }
+  setStatus(added.length ? `Added ${added.join(" and ")}.` : "");
+  render();
+}
+
+// ---------------------------------------------------------------------------
+// Showing the result
+// ---------------------------------------------------------------------------
+
+function summarize(events) {
+  const ends = events.filter((e) => e.event === "session_end");
+  const starts = events.filter((e) => e.event === "session_start").map((e) => String(e.ts).slice(0, 10)).sort();
+  const featureSessions = {};
+  for (const e of ends) for (const f of e.features || []) featureSessions[f] = (featureSessions[f] || 0) + 1;
+  const fieldsByEvent = {};
+  for (const e of events) {
+    const keys = (fieldsByEvent[e.event] = fieldsByEvent[e.event] || new Set());
+    for (const k of Object.keys(e)) keys.add(k);
+  }
+  return {
+    conversations: ends.length,
+    yourMessages: ends.reduce((n, e) => n + (e.user_turns || 0), 0),
+    aiReplies: ends.reduce((n, e) => n + (e.ai_turns || 0), 0),
+    first: starts[0],
+    last: starts[starts.length - 1],
+    featureSessions,
+    fieldsByEvent,
+    hasModel: events.some((e) => e.event === "ai_turn" && e.model),
+  };
+}
+
+function el(tag, props = {}, ...children) {
+  const node = document.createElement(tag);
+  Object.assign(node, props);
+  for (const child of children) node.append(child);
+  return node;
+}
+
+function month(day) {
+  const d = new Date(`${day}T00:00:00Z`);
+  return Number.isNaN(d.getTime()) ? day : d.toLocaleDateString(undefined, { month: "short", year: "numeric", timeZone: "UTC" });
+}
+
+function period(first, last) {
+  if (!first || !last) return "—";
+  const a = month(first);
+  const b = month(last);
+  return a === b ? a : `${a} – ${b}`;
+}
+
+function stat(value, label) {
+  return el("div", { className: "stat" }, el("b", { textContent: value }), el("span", { textContent: label }));
+}
+
+function renderExports() {
+  const list = $("exports");
+  list.replaceChildren();
+  for (const [source, info] of exportsBySource) {
+    const { stats } = info.result;
+    const skipped = stats.empty + stats.noId;
+    const detail = `${fmt(stats.imported)} conversations from ${info.from}` +
+      (skipped ? ` · ${fmt(skipped)} empty ones skipped` : "");
+    const remove = el("button", { className: "btn", type: "button", textContent: "Remove" });
+    remove.setAttribute("aria-label", `Remove the ${SOURCE_LABELS[source]} export`);
+    remove.addEventListener("click", () => {
+      exportsBySource.delete(source);
+      setStatus("");
+      render();
+    });
+    const notes = info.notes.length ? el("span", { textContent: ` · ${info.notes.join(" ")}` }) : "";
+    list.append(el("div", { className: "export" },
+      el("div", { className: "what" }, el("b", { textContent: SOURCE_LABELS[source] }), el("span", { textContent: detail }), notes),
+      remove));
+  }
+  const more = [...Object.keys(SOURCE_LABELS)].filter((s) => !exportsBySource.has(s)).map((s) => SOURCE_LABELS[s]);
+  if (more.length) {
+    list.append(el("p", { className: "hint", textContent: `Also use ${more.join(" or ")}? Add that export in step 2 and it will be included in the same file.` }));
+  }
+}
+
+function renderSummary(s) {
+  $("stats").replaceChildren(
+    stat(fmt(s.conversations), "conversations"),
+    stat(fmt(s.yourMessages), "messages you sent"),
+    stat(fmt(s.aiReplies), "AI replies"),
+    stat(period(s.first, s.last), "period covered"),
+  );
+
+  const features = Object.entries(s.featureSessions).sort((a, b) => b[1] - a[1])
+    .map(([k, n]) => `${FEATURE_LABELS[k] || k} (${fmt(n)})`);
+  const included = [
+    "When each conversation started and ended",
+    "How many messages you and the AI sent",
+    "How long the messages were, as character counts only",
+    `Which features were used: ${features.length ? features.join(", ") : "none seen"}`,
+    ...(s.hasModel ? ["Which ChatGPT model wrote each reply"] : []),
+    "A random ID for each conversation, so a later upload doesn't count it twice",
+  ];
+  $("included").replaceChildren(...included.map((text) => el("li", { textContent: text })));
+
+  const fieldText = Object.entries(s.fieldsByEvent)
+    .map(([event, keys]) => `${event}: ${[...keys].join(", ")}`).join(" · ");
+  $("fields").textContent = `Every field in the file, by record type. ${fieldText}`;
+}
+
+const PREVIEW_SESSIONS = 3;
+
+function renderJson() {
+  const pre = $("json");
+  if (showingAll) {
+    pre.textContent = evidence.json;
+    $("show-all").hidden = true;
+    return;
+  }
+  // The first few conversations' records, so the shape is easy to read.
+  const ids = [];
+  for (const e of evidence.payload.events) {
+    if (!ids.includes(e.session_id)) ids.push(e.session_id);
+    if (ids.length === PREVIEW_SESSIONS) break;
+  }
+  const sample = evidence.payload.events.filter((e) => ids.includes(e.session_id));
+  const rest = evidence.payload.events.length - sample.length;
+  pre.textContent = JSON.stringify({ ...evidence.payload, events: sample }, null, 2) +
+    (rest > 0 ? `\n\n… and ${fmt(rest)} more records like these.` : "");
+  $("show-all").hidden = rest <= 0;
+}
+
+function render() {
+  const has = exportsBySource.size > 0;
+  $("review").hidden = !has;
+  $("save").hidden = !has;
+  if (!has) {
+    evidence = null;
+    return;
+  }
+  const built = buildEvidence([...exportsBySource.values()].map((x) => x.result));
+  evidence = { ...built, json: JSON.stringify(built.payload, null, 2) };
+  showingAll = false;
+  renderExports();
+  renderSummary(summarize(built.payload.events));
+  renderJson();
+  runSearch();
+  $("saved").hidden = true;
+  $("filename").hidden = false;
+  $("filename").textContent = `It goes to your browser's Downloads folder as ${built.filename} (${size(new Blob([evidence.json]).size)}).`;
+}
+
+function runSearch() {
+  const out = $("search-result");
+  const q = $("search").value.trim();
+  out.className = "search-result";
+  if (!evidence || q.length < 3) {
+    out.textContent = q ? "Type at least 3 characters." : "";
+    return;
+  }
+  const hay = evidence.json.toLowerCase();
+  const needle = q.toLowerCase();
+  let count = 0;
+  let first = -1;
+  for (let i = hay.indexOf(needle); i !== -1; i = hay.indexOf(needle, i + needle.length)) {
+    if (first < 0) first = i;
+    count++;
+  }
+  if (!count) {
+    out.classList.add("ok");
+    out.textContent = `✓ "${q}" is not in the file.`;
+    return;
+  }
+  const start = Math.max(0, evidence.json.lastIndexOf("\n", first) + 1);
+  const end = evidence.json.indexOf("\n", first);
+  const line = evidence.json.slice(start, end < 0 ? undefined : end).trim();
+  out.classList.add("found");
+  out.textContent = `Found ${fmt(count)} time${count === 1 ? "" : "s"}, as part of a field like ${line}. Fields hold only names, dates, IDs and numbers.`;
+}
+
+function save() {
+  if (!evidence) return;
+  const url = URL.createObjectURL(new Blob([evidence.json], { type: "application/json" }));
+  const a = el("a", { href: url, download: evidence.filename });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  // A page can't learn the real folder path, only that the browser took the file.
+  $("saved-name").textContent = evidence.filename;
+  $("saved").hidden = false;
+  $("filename").hidden = true;
+}
+
+// ---------------------------------------------------------------------------
+// Wiring
+// ---------------------------------------------------------------------------
+
+function setupTabs() {
+  const tabs = [$("tab-chatgpt"), $("tab-claude")];
+  const select = (tab) => {
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute("aria-controls")).hidden = !on;
+    }
+  };
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => select(tab));
+    tab.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+      select(next);
+      next.focus();
+    });
+  });
+}
+
+function setup() {
+  setupTabs();
+  $("version").textContent = `Converter v${CONVERTER_VERSION} · ChatGPT rules v${PARSER_VERSIONS.chatgpt} · Claude rules v${PARSER_VERSIONS.claude_web}`;
+
+  const fileInput = $("file-input");
+  const folderInput = $("folder-input");
+  $("pick-file").addEventListener("click", () => fileInput.click());
+  $("pick-folder").addEventListener("click", () => folderInput.click());
+  for (const input of [fileInput, folderInput]) {
+    input.addEventListener("change", () => {
+      const groups = groupsFromFileList(input.files);
+      input.value = "";
+      handleGroups(Promise.resolve(groups));
+    });
+  }
+
+  const drop = $("drop");
+  // Dropping anywhere on the page works; outside the drop zone, a stray
+  // drop must not make the browser navigate away to the file.
+  window.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+  window.addEventListener("dragleave", (e) => { if (!e.relatedTarget) drop.classList.remove("over"); });
+  window.addEventListener("drop", (e) => {
+    e.preventDefault();
+    drop.classList.remove("over");
+    handleGroups(groupsFromDrop(e.dataTransfer));
+  });
+
+  $("search").addEventListener("input", runSearch);
+  $("show-all").addEventListener("click", () => { showingAll = true; renderJson(); });
+  $("download").addEventListener("click", save);
+}
+
+setup();
+return {  };
+})();
+</script>
+</body>
+</html>

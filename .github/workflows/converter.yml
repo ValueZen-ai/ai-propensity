@@ -1,0 +1,71 @@
+name: converter
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: pip install pytest
+      # Includes tests/test_converter_parity.py: the browser converter must
+      # produce exactly what the Python adapters produce.
+      - run: python -m pytest tests
+      - run: node --test converter/test/*.test.mjs
+      # The committed HTML is what people download; it must be a fresh
+      # build of the reviewed source in converter/src.
+      - run: node converter/build.mjs --check
+
+  # Attach the converter to every release, so
+  # https://github.com/ValueZen-ai/ai-propensity/releases/latest/download/ai-propensity-converter.html
+  # always downloads the newest one (as a real .html file, which GitHub's
+  # code view and raw links don't reliably give you).
+  release-asset:
+    if: github.event_name == 'release'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: cd converter && sha256sum ai-propensity-converter.html > ai-propensity-converter.html.sha256
+      - run: gh release upload "${{ github.event.release.tag_name }}" converter/ai-propensity-converter.html converter/ai-propensity-converter.html.sha256 --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # The same file, served at https://valuezen-ai.github.io/ai-propensity/
+  # for anyone who'd rather open a link than download. Requires Settings →
+  # Pages → Source: "GitHub Actions".
+  pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir site && cp converter/ai-propensity-converter.html site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
